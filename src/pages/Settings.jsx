@@ -2,7 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Building2, Plus, Trash2, Check, UserCog, Shield, Database,
-    Pencil, X, ChevronDown, ChevronRight, Briefcase, CheckCircle2
+    Pencil, X, ChevronDown, ChevronRight, Briefcase, CheckCircle2,
+    Eye, EyeOff,
 } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
@@ -125,6 +126,178 @@ function CompanyCard({ company, isActive, onSetActive, onEdit, onDelete }) {
     );
 }
 
+function CompanyCredentialRow({ company }) {
+    const { updateCompany } = useApp();
+    const [loginId, setLoginId] = useState(company.loginId || "");
+    const [password, setPassword] = useState(company.password || "");
+    const [companyRole, setCompanyRole] = useState(company.companyRole || "Company Owner");
+    const [showPw, setShowPw] = useState(false);
+    const [editing, setEditing] = useState(!company.loginId);
+    const [saved, setSaved] = useState(false);
+    const [copied, setCopied] = useState("");
+
+    const hasCredentials = company.loginId && company.password;
+
+    const handleSave = () => {
+        if (!loginId.trim() || !password.trim()) return;
+        updateCompany(company.id, { loginId: loginId.trim(), password: password.trim(), companyRole });
+        setSaved(true);
+        setEditing(false);
+        setTimeout(() => setSaved(false), 2000);
+    };
+
+    const copyToClipboard = (text, field) => {
+        navigator.clipboard.writeText(text);
+        setCopied(field);
+        setTimeout(() => setCopied(""), 1500);
+    };
+
+    return (
+        <div className="border border-neutral-100 rounded-2xl overflow-hidden">
+            {/* Company header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-neutral-50 border-b border-neutral-100">
+                <div className="flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-lg bg-primary-100 flex items-center justify-center">
+                        <Briefcase size={13} className="text-primary-600" />
+                    </div>
+                    <span className="font-semibold text-sm text-neutral-900">{company.name}</span>
+                </div>
+                <button
+                    onClick={() => setEditing(v => !v)}
+                    className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+                >
+                    <Pencil size={12} /> {editing ? "Cancel" : "Edit"}
+                </button>
+            </div>
+
+            <div className="p-4">
+                {/* Saved credentials display */}
+                {hasCredentials && !editing && (
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-4 py-2.5 border border-neutral-100">
+                            <div>
+                                <div className="text-xs text-neutral-400 uppercase tracking-wide font-medium mb-0.5">Login ID</div>
+                                <div className="text-sm font-mono font-semibold text-neutral-900">{company.loginId}</div>
+                            </div>
+                            <button
+                                onClick={() => copyToClipboard(company.loginId, "id")}
+                                className="text-xs text-primary-600 hover:text-primary-700 font-medium px-2 py-1 rounded-lg hover:bg-primary-50 transition-colors"
+                            >
+                                {copied === "id" ? "✓ Copied" : "Copy"}
+                            </button>
+                        </div>
+                        <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-4 py-2.5 border border-neutral-100">
+                            <div>
+                                <div className="text-xs text-neutral-400 uppercase tracking-wide font-medium mb-0.5">Password</div>
+                                <div className="text-sm font-mono font-semibold text-neutral-900 tracking-widest">
+                                    {showPw ? company.password : "•".repeat(Math.min(company.password.length, 10))}
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowPw(v => !v)}
+                                    className="text-neutral-400 hover:text-neutral-600 transition-colors"
+                                >
+                                    {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                                </button>
+                                <button
+                                    onClick={() => copyToClipboard(company.password, "pw")}
+                                    className="text-xs text-primary-600 hover:text-primary-700 font-medium px-2 py-1 rounded-lg hover:bg-primary-50 transition-colors"
+                                >
+                                    {copied === "pw" ? "✓ Copied" : "Copy"}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between bg-neutral-50 rounded-xl px-4 py-2.5 border border-neutral-100">
+                            <div>
+                                <div className="text-xs text-neutral-400 uppercase tracking-wide font-medium mb-0.5">Role</div>
+                                <div className="text-sm font-semibold text-neutral-900">{company.companyRole || "Company Owner"}</div>
+                            </div>
+                            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${(company.companyRole || "Company Owner") === "Company Owner"
+                                ? "bg-primary-100 text-primary-700"
+                                : "bg-blue-100 text-blue-700"
+                                }`}>{company.companyRole || "Company Owner"}</span>
+                        </div>
+                        <p className="text-xs text-neutral-400 mt-1">Share these credentials with the company admin to let them log in.</p>
+                    </div>
+                )}
+
+                {/* Edit / Create form */}
+                {(!hasCredentials || editing) && (
+                    <div className="flex flex-col gap-3">
+                        {!hasCredentials && (
+                            <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 border border-amber-100">
+                                No credentials set yet. Create a Login ID and Password for this company.
+                            </p>
+                        )}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label className="block text-xs font-medium text-neutral-500 mb-1.5 uppercase tracking-wide">Login ID</label>
+                                <Input
+                                    placeholder="e.g. company@login.com"
+                                    value={loginId}
+                                    onChange={e => setLoginId(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-neutral-500 mb-1.5 uppercase tracking-wide">Password</label>
+                                <div className="relative">
+                                    <Input
+                                        type={showPw ? "text" : "password"}
+                                        placeholder="Set password"
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPw(v => !v)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+                                    >
+                                        {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="sm:col-span-2">
+                                <label className="block text-xs font-medium text-neutral-500 mb-1.5 uppercase tracking-wide">Role / Access Level</label>
+                                <div className="flex gap-3">
+                                    {["Company Owner", "Accountant"].map(r => (
+                                        <button
+                                            key={r}
+                                            type="button"
+                                            onClick={() => setCompanyRole(r)}
+                                            className={`flex-1 py-2.5 px-3 rounded-xl border-2 text-sm font-medium transition-all ${companyRole === r
+                                                ? r === "Company Owner"
+                                                    ? "border-primary-400 bg-primary-50 text-primary-700"
+                                                    : "border-blue-400 bg-blue-50 text-blue-700"
+                                                : "border-neutral-200 text-neutral-500 hover:border-neutral-300"
+                                                }`}
+                                        >
+                                            {r}
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-neutral-400 mt-1.5">
+                                    {companyRole === "Company Owner"
+                                        ? "Can view reports, add bills, see budget breakdown."
+                                        : "Can view and add bills only. No budget or delete access."}
+                                </p>
+                            </div>
+                        </div>
+                        <Button
+                            className={`h-9 px-4 text-sm gap-2 self-start ${saved ? "bg-emerald-500" : ""}`}
+                            onClick={handleSave}
+                        >
+                            {saved ? <><Check size={14} /> Saved!</> : <><Check size={14} /> Save Credentials</>}
+                        </Button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+
 export function Settings() {
     const {
         departments, addDepartment, deleteDepartment,
@@ -214,7 +387,7 @@ export function Settings() {
                             <Building2 size={20} className="text-primary-600" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-neutral-900">Departments</h3>
+                            <h3 className="font-bold text-neutral-900">Categories</h3>
                             <p className="text-xs text-neutral-500">Add or remove expense departments</p>
                         </div>
                     </div>
@@ -323,7 +496,7 @@ export function Settings() {
                             subtitle: "Owner / Admin",
                             description: "Can view, add bills, edit budgets, and delete bills. Cannot delete departments or manage companies.",
                             perms: ["View Dashboard", "Add Bills", "Edit Budget", "Delete Bills", "Export Reports"],
-                            denied: ["Delete Departments", "Manage Companies"],
+                            denied: ["Delete Categories", "Manage Companies"],
                             color: "border-primary-300 bg-primary-50/60",
                             badge: "bg-primary-100 text-primary-700",
                         },
@@ -332,7 +505,7 @@ export function Settings() {
                             subtitle: "Staff / Employee",
                             description: "Can view everything and add bills, but cannot delete any data or manage companies.",
                             perms: ["View Dashboard", "Add Bills", "Edit Budget", "Export Reports"],
-                            denied: ["Delete Bills", "Delete Departments", "Manage Companies"],
+                            denied: ["Delete Bills", "Delete Categories", "Manage Companies"],
                             color: "border-blue-200 bg-blue-50/40",
                             badge: "bg-blue-100 text-blue-700",
                         },
@@ -341,7 +514,7 @@ export function Settings() {
                             subtitle: "Read-only",
                             description: "Can only view dashboards and reports. Cannot add, edit, or delete anything.",
                             perms: ["View Dashboard", "Export Reports"],
-                            denied: ["Add Bills", "Edit Budget", "Delete Bills", "Delete Departments", "Manage Companies"],
+                            denied: ["Add Bills", "Edit Budget", "Delete Bills", "Delete Categories", "Manage Companies"],
                             color: "border-neutral-200 bg-neutral-50/40",
                             badge: "bg-neutral-100 text-neutral-600",
                         },
@@ -388,6 +561,27 @@ export function Settings() {
 
                 <div className="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-700 leading-relaxed">
                     <strong>Note:</strong> Role changes take effect instantly across the entire app. In production, roles would be managed server-side per user account.
+                </div>
+            </Card>
+
+            {/* ── USER ACCOUNTS ─────────────────────────────────────── */}
+            <Card className="p-6">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="h-10 w-10 bg-violet-50 rounded-xl flex items-center justify-center">
+                        <UserCog size={20} className="text-violet-600" />
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-neutral-900">Company Login Credentials</h3>
+                        <p className="text-xs text-neutral-500">Create login ID &amp; password for each company's dashboard access</p>
+                    </div>
+                </div>
+                <div className="flex flex-col gap-4">
+                    {companies.map((company) => (
+                        <CompanyCredentialRow key={company.id} company={company} />
+                    ))}
+                    {companies.length === 0 && (
+                        <div className="text-center py-6 text-neutral-400 text-sm">No companies added yet. Add one in the Companies section above.</div>
+                    )}
                 </div>
             </Card>
 

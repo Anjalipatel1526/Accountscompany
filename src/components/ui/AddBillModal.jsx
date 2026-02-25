@@ -96,7 +96,7 @@ export function AddBillModal({ open, onClose }) {
 
                                 <div>
                                     <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                                        <Building2 size={13} className="inline mr-1.5 text-primary-500" />Department
+                                        <Building2 size={13} className="inline mr-1.5 text-primary-500" />Category
                                     </label>
                                     <Select name="department" value={form.department} onChange={handleChange} required>
                                         {departments.map(d => (

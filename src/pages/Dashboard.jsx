@@ -1,149 +1,138 @@
 import { motion } from "framer-motion";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { IndianRupee, PieChart as PieChartIcon, Target, FileText, ChevronDown } from "lucide-react";
-import { StatCard } from "../components/ui/StatCard";
+import { Building2, Users, CheckCircle2, XCircle, Key } from "lucide-react";
+import { useApp } from "../context/AppContext";
 import { Card } from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
-import { mockBudget, expenseChartData, departmentPieData, mockExpenses } from "../utils/mockData";
+import { useNavigate } from "react-router-dom";
 
 export function Dashboard() {
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
+    const { companies, departments } = useApp();
+    const navigate = useNavigate();
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
+    const companiesWithLogin = companies.filter(c => c.loginId && c.password);
+    const companiesWithout = companies.filter(c => !c.loginId || !c.password);
+
+    const cv = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.07 } } };
+    const iv = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
+
+    const stats = [
+        { label: "Total Companies", value: companies.length, icon: Building2, color: "text-primary-600", bg: "bg-primary-50" },
+        { label: "Active Logins", value: companiesWithLogin.length, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
+        { label: "No Login Set", value: companiesWithout.length, icon: XCircle, color: "text-amber-500", bg: "bg-amber-50" },
+        { label: "Categories", value: departments.length, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
+    ];
 
     return (
-        <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={containerVariants}
-            className="flex flex-col gap-8"
-        >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Dashboard Overview</h1>
-                    <p className="text-neutral-500 text-sm mt-1">Track company expenses and manage your department bills.</p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <Button variant="outline" className="gap-2">
-                        February 2026 <ChevronDown size={16} />
-                    </Button>
-                    <Button className="gap-2">
-                        <IndianRupee size={16} /> Add Expense
-                    </Button>
-                </div>
-            </div>
+        <motion.div initial="hidden" animate="visible" variants={cv} className="flex flex-col gap-8">
+            {/* Header */}
+            <motion.div variants={iv}>
+                <h1 className="text-2xl font-bold tracking-tight text-neutral-900">Admin Overview</h1>
+                <p className="text-neutral-500 text-sm mt-1">Manage companies and their access from here.</p>
+            </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <motion.div variants={itemVariants}>
-                    <StatCard
-                        title="Total Monthly Budget"
-                        value={`₹${(mockBudget.total / 100000).toFixed(2)}L`}
-                        icon={Target}
-                    />
-                </motion.div>
-                <motion.div variants={itemVariants}>
-                    <StatCard
-                        title="Total Expense"
-                        value={`₹${(mockBudget.spent / 100000).toFixed(2)}L`}
-                        icon={IndianRupee}
-                        trendType="bad"
-                        trendValue="+12.5%"
-                    />
-                </motion.div>
-                <motion.div variants={itemVariants}>
-                    <StatCard
-                        title="Remaining Budget"
-                        value={`₹${((mockBudget.total - mockBudget.spent) / 100000).toFixed(2)}L`}
-                        icon={PieChartIcon}
-                    />
-                </motion.div>
-                <motion.div variants={itemVariants}>
-                    <StatCard
-                        title="Bills Uploaded"
-                        value={mockExpenses.length.toString()}
-                        icon={FileText}
-                        trendType="good"
-                        trendValue="+2"
-                    />
-                </motion.div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <motion.div variants={itemVariants} className="lg:col-span-2">
-                    <Card className="h-[400px] flex flex-col">
-                        <div className="mb-6">
-                            <h3 className="font-semibold text-lg text-neutral-900">Expense Trend</h3>
-                            <p className="text-sm text-neutral-500">Daily breakdown of company expenses</p>
+            {/* Summary Stats */}
+            <motion.div variants={iv} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {stats.map(({ label, value, icon: Icon, color, bg }) => (
+                    <Card key={label} className="flex flex-col gap-3 p-5">
+                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${bg}`}>
+                            <Icon size={20} className={color} strokeWidth={2} />
                         </div>
-                        <div className="flex-1 w-full min-h-0">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={expenseChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                                    <defs>
-                                        <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#ff8c38" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#ff8c38" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5f5f5" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#a3a3a3', fontSize: 12 }} dy={10} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#a3a3a3', fontSize: 12 }} dx={-10} tickFormatter={(val) => `₹${val / 1000}k`} />
-                                    <Tooltip
-                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)' }}
-                                    />
-                                    <Area type="monotone" dataKey="expenses" stroke="#ff8c38" strokeWidth={3} fillOpacity={1} fill="url(#colorExp)" />
-                                </AreaChart>
-                            </ResponsiveContainer>
+                        <div>
+                            <div className="text-xs text-neutral-500 font-medium">{label}</div>
+                            <div className="text-3xl font-black tracking-tight text-neutral-900 mt-0.5">{value}</div>
                         </div>
                     </Card>
-                </motion.div>
+                ))}
+            </motion.div>
 
-                <motion.div variants={itemVariants}>
-                    <Card className="h-[400px] flex flex-col">
-                        <div className="mb-2">
-                            <h3 className="font-semibold text-lg text-neutral-900">Department Share</h3>
-                            <p className="text-sm text-neutral-500">Expense distribution</p>
+            {/* Companies list */}
+            <motion.div variants={iv}>
+                <Card className="p-6">
+                    <div className="flex items-center justify-between mb-5">
+                        <div>
+                            <h3 className="font-bold text-neutral-900">Companies</h3>
+                            <p className="text-xs text-neutral-500 mt-0.5">All registered company accounts</p>
                         </div>
-                        <div className="flex-1 w-full flex items-center justify-center relative min-h-0">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={departmentPieData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={90}
-                                        paddingAngle={3}
-                                        dataKey="value"
-                                        stroke="none"
-                                    >
-                                        {departmentPieData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip
-                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)' }}
-                                        itemStyle={{ color: '#171717' }}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
-                            {/* Inner Label */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span className="text-xs text-neutral-400 font-medium">Top Dept</span>
-                                <span className="text-lg font-bold text-neutral-900">Technical</span>
+                        <button
+                            onClick={() => navigate("/companies")}
+                            className="text-xs text-primary-600 hover:text-primary-700 font-semibold px-3 py-1.5 rounded-lg hover:bg-primary-50 transition-colors"
+                        >
+                            Manage →
+                        </button>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        {companies.length === 0 && (
+                            <div className="text-center py-8 text-neutral-400 text-sm">
+                                No companies yet. <button onClick={() => navigate("/companies")} className="text-primary-600 underline">Add one</button>
                             </div>
+                        )}
+                        {companies.map((c, i) => {
+                            const hasLogin = c.loginId && c.password;
+                            return (
+                                <motion.div
+                                    key={c.id}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="flex items-center justify-between p-4 rounded-2xl border border-neutral-100 bg-neutral-50/40 hover:border-neutral-200 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-9 w-9 rounded-xl bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                            <Building2 size={16} className="text-primary-600" />
+                                        </div>
+                                        <div>
+                                            <div className="font-semibold text-sm text-neutral-900">{c.name}</div>
+                                            <div className="text-xs text-neutral-400 mt-0.5">{c.industry || "—"} · {c.email || "No email"}</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {hasLogin ? (
+                                            <>
+                                                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${c.companyRole === "Accountant" ? "bg-blue-100 text-blue-700" : "bg-primary-100 text-primary-700"
+                                                    }`}>{c.companyRole || "Company Owner"}</span>
+                                                <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-full">
+                                                    <Key size={11} /> Active Login
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <span className="text-xs text-amber-600 font-medium bg-amber-50 px-2 py-0.5 rounded-full">No Login Set</span>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </div>
+                </Card>
+            </motion.div>
+
+            {/* Departments quick view */}
+            <motion.div variants={iv}>
+                <Card className="p-6">
+                    <div className="flex items-center justify-between mb-5">
+                        <div>
+                            <h3 className="font-bold text-neutral-900">Categories</h3>
+                            <p className="text-xs text-neutral-500 mt-0.5">Available across all company dashboards</p>
                         </div>
-                    </Card>
-                </motion.div>
-            </div>
+                        <button
+                            onClick={() => navigate("/departments")}
+                            className="text-xs text-primary-600 hover:text-primary-700 font-semibold px-3 py-1.5 rounded-lg hover:bg-primary-50 transition-colors"
+                        >
+                            Manage →
+                        </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {departments.map((d) => (
+                            <span key={d.id} className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-xl border border-neutral-100 bg-neutral-50 text-neutral-700">
+                                <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: d.color || "#ff8c38" }} />
+                                {d.label}
+                            </span>
+                        ))}
+                        {departments.length === 0 && (
+                            <span className="text-sm text-neutral-400">No categories yet. Add them in Categories.</span>
+                        )}
+                    </div>
+                </Card>
+            </motion.div>
         </motion.div>
     );
 }

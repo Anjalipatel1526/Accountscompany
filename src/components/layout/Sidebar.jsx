@@ -1,29 +1,29 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
     LayoutDashboard,
-    ReceiptIndianRupee,
     Building2,
-    Wallet,
-    BookOpenText,
-    FileBarChart,
+    Layers,
     Settings,
-    Menu
+    Menu,
+    LogOut,
 } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-    { icon: ReceiptIndianRupee, label: "Expenses", path: "/expenses" },
-    { icon: Building2, label: "Departments", path: "/departments" },
-    { icon: Wallet, label: "Budget", path: "/budget" },
-    { icon: BookOpenText, label: "Ledger", path: "/ledger" },
-    { icon: FileBarChart, label: "Reports", path: "/reports" },
+    { icon: Building2, label: "Companies", path: "/companies" },
+    { icon: Layers, label: "Categories", path: "/departments" },
     { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
 export function Sidebar({ className }) {
     const [collapsed, setCollapsed] = useState(false);
+    const { logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = () => { logout(); navigate("/login"); };
 
     return (
         <aside
@@ -34,7 +34,7 @@ export function Sidebar({ className }) {
             )}
         >
             <div className="flex h-20 items-center justify-between px-6 py-6 font-semibold border-b border-primary-50/50">
-                {!collapsed && <span className="text-xl tracking-tight text-neutral-900 truncate">FinAd</span>}
+                {!collapsed && <span className="text-xl tracking-tight text-neutral-900 truncate">FinAd <span className="text-xs font-normal text-neutral-400 ml-1">Admin</span></span>}
                 <button
                     onClick={() => setCollapsed(!collapsed)}
                     className="p-1 rounded-xl hover:bg-neutral-100 text-neutral-500 transition-colors mx-auto"
@@ -47,6 +47,7 @@ export function Sidebar({ className }) {
                     <NavLink
                         key={item.path}
                         to={item.path}
+                        end={item.path === "/"}
                         className={({ isActive }) =>
                             cn(
                                 "flex items-center gap-3 rounded-2xl px-3 py-3 font-medium transition-all group relative",
@@ -71,14 +72,19 @@ export function Sidebar({ className }) {
                     </NavLink>
                 ))}
             </nav>
-            {!collapsed && (
-                <div className="p-6">
-                    <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-2xl p-4 border border-primary-100/50 shadow-sm">
-                        <h4 className="text-sm font-semibold text-primary-900 mb-1">Company Admins</h4>
-                        <p className="text-xs text-primary-700 leading-relaxed text-balance">Track and manage every single expense effectively.</p>
-                    </div>
-                </div>
-            )}
+            <div className="px-3 pb-6">
+                <button
+                    onClick={handleLogout}
+                    className={cn(
+                        "flex items-center gap-3 w-full rounded-2xl px-3 py-3 text-sm font-medium text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-all",
+                        collapsed && "justify-center"
+                    )}
+                >
+                    <LogOut size={20} />
+                    {!collapsed && <span>Sign Out</span>}
+                </button>
+            </div>
         </aside>
     );
 }
+

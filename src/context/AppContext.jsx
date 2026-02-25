@@ -24,13 +24,18 @@ const initialCompanies = [
     {
         id: "comp-001",
         name: "UNAI Technologies Pvt. Ltd.",
-        gstin: "27AAPFU0939F1ZV",
-        pan: "AAPFU0939F",
         address: "Mumbai, Maharashtra, India",
         phone: "+91 98765 43210",
         email: "accounts@unaitech.in",
         industry: "Technology",
         financialYear: "2025-2026",
+        loginId: "",
+        password: "",
+        accountantName: "",
+        accountantEmail: "",
+        accountantPhone: "",
+        accountantRole: "Accountant",
+        companyRole: "Company Owner", // role for the company login user
     }
 ];
 
